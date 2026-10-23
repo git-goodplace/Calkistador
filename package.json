@@ -1,0 +1,13 @@
+{
+  "name": "finance-calculator",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Личные и бизнес-финансы в одном приложении: учёт для самозанятых и ИП-одиночек",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.ts\""
+  }
+}
