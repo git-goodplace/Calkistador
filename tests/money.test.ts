@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { formatMoney, percentOf, roundToRubles, rubles, toRubles } from '../src/domain/money.ts';
+import {
+  formatMoney,
+  parseRubleInput,
+  percentOf,
+  roundToRubles,
+  rubles,
+  toRubles,
+} from '../src/domain/money.ts';
 
 test('рубли переводятся в копейки без потери точности', () => {
   assert.equal(rubles(0.1) + rubles(0.2), rubles(0.3));
@@ -25,4 +32,20 @@ test('формат денег: разряды, копейки, знак', () => 
   assert.equal(formatMoney(rubles(-500)), '−500,00 ₽');
   assert.equal(formatMoney(rubles(500), { withSign: true }), '+500,00 ₽');
   assert.equal(formatMoney(5), '0,05 ₽');
+});
+
+test('разбор ввода с клавиатуры', () => {
+  assert.equal(parseRubleInput('1234'), rubles(1234));
+  assert.equal(parseRubleInput('1234,5'), rubles(1234.5));
+  assert.equal(parseRubleInput('1234.50'), rubles(1234.5));
+  assert.equal(parseRubleInput('1 234'), rubles(1234));
+  assert.equal(parseRubleInput('0,05'), 5);
+  // одна запятая — это ещё не сумма, сохранять нечего
+  assert.equal(parseRubleInput(','), null);
+  // лишние знаки отбрасываются, а не округляются: на экране то, что набрано
+  assert.equal(parseRubleInput('10,999'), rubles(10.99));
+  assert.equal(parseRubleInput(''), null);
+  assert.equal(parseRubleInput('.'), null);
+  assert.equal(parseRubleInput('abc'), null);
+  assert.equal(parseRubleInput('1,2,3'), null);
 });

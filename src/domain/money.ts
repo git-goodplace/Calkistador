@@ -38,6 +38,24 @@ export function clampToZero(value: Kopecks): Kopecks {
   return value < 0 ? 0 : value;
 }
 
+/**
+ * Разбор того, что человек набрал на клавиатуре ввода: «1234,5», «1 234.50».
+ * Возвращает null, если сумму прочитать нельзя — вызывающий код сам решает,
+ * показать ошибку или просто не дать сохранить.
+ */
+export function parseRubleInput(text: string): Kopecks | null {
+  const normalized = text.replace(/[\s ]/g, '').replace(',', '.');
+  if (normalized === '' || normalized === '.') return null;
+  if (!/^\d*\.?\d*$/.test(normalized)) return null;
+
+  const [whole = '', fraction = ''] = normalized.split('.');
+  // Больше двух знаков после запятой отбрасываем, а не округляем: человек
+  // видит на экране ровно то, что набрал, и сюрприза в сумме не будет.
+  const cents = (fraction + '00').slice(0, 2);
+  const value = Number(whole || '0') * KOPECKS_IN_RUBLE + Number(cents);
+  return Number.isFinite(value) ? value : null;
+}
+
 /** Формат для интерфейса: 1234567 -> "12 345,67 ₽" */
 export function formatMoney(value: Kopecks, options: { withSign?: boolean } = {}): string {
   const negative = value < 0;

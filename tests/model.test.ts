@@ -29,6 +29,7 @@ import {
   validateOperation,
 } from '../src/domain/model/operations.ts';
 import { mergeCollections, syncStateOf } from '../src/domain/model/sync.ts';
+import type { Syncable } from '../src/domain/model/sync.ts';
 import {
   NOW,
   account,
@@ -370,8 +371,8 @@ test('одинаковые версии конфликтом не считают
 });
 
 test('удаление участвует в слиянии на равных и может победить', () => {
-  const local = [{ id: 'o1', updatedAt: '2026-10-23T10:00:00.000Z' }];
-  const remote = [
+  const local: Syncable[] = [{ id: 'o1', updatedAt: '2026-10-23T10:00:00.000Z' }];
+  const remote: Syncable[] = [
     { id: 'o1', updatedAt: '2026-10-23T13:00:00.000Z', deletedAt: '2026-10-23T13:00:00.000Z' },
   ];
 
