@@ -1,0 +1,67 @@
+name: Сборка и публикация приложения
+
+# Публикуем при каждом изменении в main. Кнопка «Run workflow» нужна для
+# первого запуска: до включения Pages в настройках репозитория публикация
+# падает, и запустить её повторно удобнее вручную.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Две публикации одновременно затёрли бы друг друга.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Проверки и сборка
+    runs-on: ubuntu-latest
+    steps:
+      - name: Получить код
+        uses: actions/checkout@v4
+
+      # Node 24: тесты выполняют TypeScript напрямую, а это работает без
+      # дополнительных флагов только с 23-й версии.
+      - name: Поставить Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Установить зависимости
+        run: npm ci
+
+      - name: Тесты
+        run: npm test
+
+      - name: Проверка типов
+        run: npm run typecheck
+
+      - name: Сборка
+        run: npm run build
+
+      - name: Настроить Pages
+        uses: actions/configure-pages@v5
+
+      - name: Загрузить собранное приложение
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Публикация
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Выложить на GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
